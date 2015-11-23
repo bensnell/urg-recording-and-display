@@ -1,0 +1,8 @@
+<group>
+	<View>
+		<Zoom>0.02</Zoom>
+	</View>
+	<OSC>
+		<OSC_Port>7777</OSC_Port>
+	</OSC>
+</group>
