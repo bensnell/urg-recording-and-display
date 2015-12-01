@@ -7,11 +7,14 @@ void ofApp::setup(){
     urg.setupPointMesh();
     
     // set the parameters of the scan
-    urg.setMeshParameters(800, 0, 682, 0.);
+    urg.setMeshParameters(800, 0, 682, 1000.);
     
-    urg.loadData("doherty", 0);
-    urg.fillPointMeshTXY(0, 5000, false);
+//    urg.loadData("doherty", 0);
+//    urg.fillPointMeshTXY(0, 5000, false);
     
+    // try: 15 (/1) (creek), 6 (/8) hi res bamboo forest
+    urg.loadData("spherical", 6);
+    urg.fillPointMeshTXYSpherical(225./64. / 8., 180., false, 0., 1., -3.8);
     
     // Entrances
 //    urg.loadData("entrances", 3); // should be 4
@@ -38,7 +41,9 @@ void ofApp::update(){
 void ofApp::draw(){
     ofBackground(0);
     
-    urg.drawPointMeshLinear(scale, slide, 0);
+    urg.drawPointMeshSpherical(scale, slide);
+    
+//    urg.drawPointMeshLinear(scale, slide, 0);
     
 //    urg.drawPointMeshTWPRXY(scale, slide);
     

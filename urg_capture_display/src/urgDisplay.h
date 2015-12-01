@@ -85,7 +85,6 @@ public:
     ofMesh pointMeshOpaque;
     ofMesh pointMeshTransparent;
     
-    
     // array stores the best points to mirror across and resample the bad side
     // initialize all elements to zero
     ofVec3f mirrorPoints[682] = {ofVec3f(0., 0., 0.)};
@@ -96,6 +95,11 @@ public:
     // max distance of continuity = maximum distance that two average y values can be away from each other to be considered part of the same person
     // vector to hold people:
     vector<person> people;
+    
+    // fill a spherical mesh with timestamped data
+    // speed is angle in degrees per second
+    // the min and max periods are 0. and 1. for only showing the first pass at a capture
+    void fillPointMeshTXYSpherical(float speed, float period, bool bClockwise, float startingPeriod, float numPeriods, float alignmentAngle);
     
     
     // ---------------------------
@@ -115,6 +119,8 @@ public:
     float currentLocation = 0;
     float destination = 0;
     int pplCount = 0;
+    
+    void drawPointMeshSpherical(float scale, float slide);
     
     ofCamera camera;
     

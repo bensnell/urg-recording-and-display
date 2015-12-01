@@ -28,6 +28,7 @@ public:
     ofParameterGroup viewParams;
     
     ofParameter<bool> drawRender;
+    ofParameter<bool> capture360;
     ofParameter<float> renderScale;
     ofParameter<int> zSpacing;
     ofParameter<int> nMeshes;
@@ -79,5 +80,9 @@ public:
     
     // real-time render meshes
     vector<ofMesh> meshes;
+    
+    float thisAngle = 0.; // for rendering real-time spherical capture
+    float rotationStep = 360. / 1024.; // horizontal resolution in spherical scan
+    int stepResolution = 4; // default; number of motor steps per one relative .35 degree reference step (min = 1; max = 8) --> must change in arduino code too
     
 };

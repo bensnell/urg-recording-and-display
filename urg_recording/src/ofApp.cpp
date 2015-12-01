@@ -11,8 +11,9 @@ void ofApp::setup(){
     viewParams.add(drawMesh.set("Draw Point Cloud", true));
     renderParams.setName("Real-Time Render");
     renderParams.add(drawRender.set("Draw Real-Time Render", false));
+    renderParams.add(capture360.set("Draw Spherical Render", false));
     renderParams.add(zSpacing.set("Z Spacing", 100, 1, 400));
-    renderParams.add(nMeshes.set("Number of Layers", 20, 1, 200));
+    renderParams.add(nMeshes.set("Number of Layers", 20, 1, 512));
     renderParams.add(renderScale.set("Rendering Scale", 0.2, 0.01, 1.));
     renderParams.add(xTranslate.set("X Translation", 0, -1000, 1000));
     renderParams.add(yTranslate.set("Y Translation", 0, -1000, 1000));
@@ -74,7 +75,7 @@ void ofApp::update(){
         ss <<  setw(2) << setfill('0') << ofGetMinutes() << "-";
         ss <<  setw(2) << setfill('0') << ofGetSeconds() << " ";
         string timestamp = ss.str();
-        string fileName = "doherty/" + timestamp + "recording" + ".csv";
+        string fileName = "nude/" + timestamp + "recording" + ".csv";
         recFile.open(ofToDataPath(fileName), ofFile::WriteOnly);
         
         // set recordingState to true
@@ -163,6 +164,12 @@ void ofApp::update(){
                     points[m.getArgAsInt32(i)] = ofVec2f(m.getArgAsInt32(i+1), m.getArgAsInt32(i+2));
                 }
             }
+            
+            // if we're rendering, increment thisAngle
+            if (drawRender) {
+                thisAngle += rotationStep / stepResolution;
+                if (thisAngle > 360.) thisAngle = fmod(thisAngle, 360.f);
+            }
         }
     }
     
@@ -217,15 +224,37 @@ void ofApp::draw(){
         ofTranslate(-2500. * renderScale, 0.);
         ofScale(renderScale, renderScale, renderScale);
         
-        // draw each mesh to screen, increasingly further back
-        for (int i = 0; i < meshes.size(); i++) {
-            ofPushMatrix();
-            ofTranslate(0., 0., - i * zSpacing / 2);
-            ofRotateZ(zRotation);
-            if (bFlipXY) ofRotateY(180);
-            meshes[i].drawVertices();
-            ofPopMatrix();
+        // if not drawing spherical 360 render, render by translating each scan
+        if (!capture360) {
+            
+            // draw each mesh to screen, increasingly further back
+            for (int i = 0; i < meshes.size(); i++) {
+                ofPushMatrix();
+                ofTranslate(0., 0., - i * zSpacing / 2);
+                ofRotateZ(zRotation);
+                if (bFlipXY) ofRotateY(180);
+                meshes[i].drawVertices();
+                ofPopMatrix();
+            }
         }
+        // otherwise, capture as a sphere
+        else {
+            
+            for (int i = 0; i < meshes.size(); i++) {
+                ofPushMatrix();
+//                ofTranslate(0., 0., - i * zSpacing / 2);
+                ofRotateZ(-90.);
+                
+                // rotate to thisAngle + the step of this scan
+                ofRotateX(thisAngle - i * rotationStep / stepResolution);
+                
+//                if (bFlipXY) ofRotateY(180); // change to mirror
+                
+                meshes[i].drawVertices();
+                ofPopMatrix();
+            }
+        }
+        
         ofPopMatrix();
     }
     

@@ -981,3 +981,132 @@ int urgDisplay::getKeyPressed() {
 //    }
 //    
 //}
+
+// ---------------------------------------------------------------------
+
+// fill mesh with a spherical capture
+// scans are spaced out according to the speed of the rotations (degrees/sec; default = 225/64) and the timestamp of each step
+// each period is 180 degrees since we're recording both sides of the lidar every scan
+void urgDisplay::fillPointMeshTXYSpherical(float speed, float period, bool bClockwise, float startingPeriod, float numPeriods, float alignmentAngle) {
+    
+    // clear the mesh
+    pointMesh.clear();
+    
+    // if either variable is -1, set it to default or max
+    if (startingPeriod == -1.) startingPeriod = 0;
+    if (numPeriods == -1.) numPeriods = 99999.;
+    
+    // ------------------------------------------
+    // ------- FIND INTERVAL OF INTEREST --------
+    // ------------------------------------------
+    
+    // set time zero
+    float timeZero;
+    
+    // interval of interest of the scans
+    int startIndex = -1;
+    int endIndex = -1;
+    
+    // first, find the starting points and ending points for the sphere
+    for (int i = 0; i < nScans; i++) {
+        
+        // find the current time
+        float timeNow = csv.getFloat(i, 0) / 1000.; // in seconds
+        
+        // check if this scan is the start of the interval of interest so long as it has not yet been found
+        if (startIndex == -1) {
+            if ((timeNow * speed) >= (startingPeriod * period)) {
+                startIndex = i;
+                timeZero = timeNow;
+            }
+        }
+        
+        // check if it's the end of the interval
+        if (startIndex != -1) {
+            if ((timeNow * speed) >= ((startingPeriod + numPeriods) * period)) {
+                endIndex = i;
+                break;
+            }
+        }
+    }
+    
+    // if endIndex wasn't assigned, assign it to the total number of scans
+    if (endIndex == -1) endIndex = nScans;
+    
+    // ------------------------------------------
+    // ---------- FILL THE POINT MESH -----------
+    // ------------------------------------------
+    
+    // for every scan within the interval, add it to the mesh
+    for (int i = startIndex; i < endIndex; i++) {
+        
+        // get the current time
+        float timeNow = csv.getFloat(i, 0) / 1000. - timeZero;
+        
+        // put all the points in a scan in the mesh
+        for (int j = minIndex; j < maxIndex; j++) { // NOTE: I've been doing this wrong (i.e. wrong order of operations... this is why there are so many points at zero, zero)... it's right here now
+            
+            // find the x and y coordinates
+            float px = csv.getFloat(i, 2 * j + 1);
+            float py = csv.getFloat(i, 2 * j + 2);
+            
+            // find the vector to this point
+            ofVec3f thisPoint(px, py, 0.);
+            
+            
+            
+            // remove points too close
+            double sqDist = thisPoint.distanceSquared(ofVec3f(0.,0.,0.));
+            
+//            cout << sqDist << endl;
+
+            if (sqDist < minSqDist2Cam) continue;
+
+            
+//            if (px < 100. && py < 100.) continue;
+            
+            // rotate this point 90 degrees about the z axis to orient it upwards
+            thisPoint.rotate(90., ofVec3f(0., 0., 1.));
+            
+            // apply the alignment angle stretch or compression to realign the two chuncks
+            float alignmentFactor = (float)j / 682. * alignmentAngle;
+            thisPoint.rotate(alignmentFactor, ofVec3f(0., 0., 1.));
+            
+            // rotate the point about the y axis an amount proportional to the elapsed time and the speed
+            float rotationAmt = timeNow * speed;
+            // if clockwise is true, rotate in negative direction
+            if (bClockwise) rotationAmt *= -1.;
+            thisPoint.rotate(rotationAmt, ofVec3f(0., 1., 0.));
+            
+            // add the point to the mesh with a color
+            pointMesh.addVertex(thisPoint);
+            pointMesh.addColor(ofFloatColor(1.));
+        }
+    }
+}
+
+// ---------------------------------------------------------------------
+
+// graphs 360 degree panorama
+// slide is the rotation here
+void urgDisplay::drawPointMeshSpherical(float scale, float slide) {
+    
+    easyCam.begin();
+    
+    ofPushMatrix();
+    
+    ofScale(scale, scale, scale);
+    
+    ofRotateY(slide / 80.);
+
+    pointMesh.drawVertices();
+    
+    ofPopMatrix();
+    
+    easyCam.end();
+    
+}
+
+
+
+
