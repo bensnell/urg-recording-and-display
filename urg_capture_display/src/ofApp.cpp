@@ -7,13 +7,13 @@ void ofApp::setup(){
     urg.setupPointMesh();
     
     // set the parameters of the scan
-    urg.setMeshParameters(800, 0, 682, 1000.);
+    urg.setMeshParameters(300, 0, 682, 1000.);
     
 //    urg.loadData("doherty", 0);
 //    urg.fillPointMeshTXY(0, 5000, false);
     
     // try: 15 (/1) (creek), 6 (/8) hi res bamboo forest
-    urg.loadData("spherical", 6);
+    urg.loadData("spherical_2", 4);
     urg.fillPointMeshTXYSpherical(225./64. / 8., 180., false, 0., 1., -3.8);
     
     // Entrances
@@ -27,6 +27,12 @@ void ofApp::setup(){
     
 //    urg.loadData("carson_sidewalk_2", 0);
 //    urg.fillPointMeshTWPRXY(1200., 270., 0., 60.);
+    
+//    urg.pointMesh.save(ofToDataPath("PLYTEST"));
+    
+    // Giant Eagle
+//    urg.loadData("giant_eagle", 2);
+//    urg.fillPointMeshTXY(-1, -1, true);
     
 }
 
@@ -43,7 +49,7 @@ void ofApp::draw(){
     
     urg.drawPointMeshSpherical(scale, slide);
     
-//    urg.drawPointMeshLinear(scale, slide, 0);
+//    urg.drawPointMeshLinear(scale, slide, 90);
     
 //    urg.drawPointMeshTWPRXY(scale, slide);
     

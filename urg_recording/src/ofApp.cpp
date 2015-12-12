@@ -31,6 +31,7 @@ void ofApp::setup(){
     panel.add(recording);
     panel.loadFromFile("settings.xml");
     
+    
     receiver.setup(ofToInt(oscPort));
     
 }
@@ -75,7 +76,7 @@ void ofApp::update(){
         ss <<  setw(2) << setfill('0') << ofGetMinutes() << "-";
         ss <<  setw(2) << setfill('0') << ofGetSeconds() << " ";
         string timestamp = ss.str();
-        string fileName = "nude/" + timestamp + "recording" + ".csv";
+        string fileName = "zebra_cafe/" + timestamp + "recording" + ".csv";
         recFile.open(ofToDataPath(fileName), ofFile::WriteOnly);
         
         // set recordingState to true
