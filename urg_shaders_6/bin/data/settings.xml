@@ -1,0 +1,24 @@
+<group>
+	<General_Distance_Scaling>
+		<Min_Point_Dist>0</Min_Point_Dist>
+		<Max_Point_Dist>10000</Max_Point_Dist>
+	</General_Distance_Scaling>
+	<Point_Size_Scaling>
+		<Pt_Size_Mult>5</Pt_Size_Mult>
+		<Pt_Size_Power>1</Pt_Size_Power>
+		<Min_Point_Size>0</Min_Point_Size>
+		<Max_Point_Size>100</Max_Point_Size>
+	</Point_Size_Scaling>
+	<Point_Opacity_Scaling>
+		<Pt_Op_Mult>1</Pt_Op_Mult>
+		<Pt_Op_Power>2</Pt_Op_Power>
+		<Min_Pt_Opacity>0</Min_Pt_Opacity>
+		<Max_Pt_Opacity>1</Max_Pt_Opacity>
+	</Point_Opacity_Scaling>
+	<Placement_&_Movement>
+		<X_Translation>512</X_Translation>
+		<Y_Translation>584</Y_Translation>
+		<Speed>0.1</Speed>
+		<Save_Image_Seq>0</Save_Image_Seq>
+	</Placement_&_Movement>
+</group>
