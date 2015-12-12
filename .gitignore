@@ -3,6 +3,9 @@ recordings/
 # Csv files
 *.csv
 
+# PLY Files
+*.ply
+
 # Some general ignore patterns
 build/
 obj/
