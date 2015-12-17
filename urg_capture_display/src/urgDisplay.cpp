@@ -644,7 +644,7 @@ void urgDisplay::drawPointMeshTWPRXY(float scale, float slide) {
 
 // ---------------------------------------------------------------------
 
-void urgDisplay::drawOrthoGhostedTimeline(float zRotation, float scale, float slide) {
+void urgDisplay::drawOrthoGhostedTimeline(float xRotation, float yRotation, float zRotation, float xTranslation, float yTranslation, float scale, float slide) {
 
     int key;
     ofGetAppPtr()->keyPressed(key); // DOES NOT WORK... just call getKepPressed();
@@ -660,14 +660,14 @@ void urgDisplay::drawOrthoGhostedTimeline(float zRotation, float scale, float sl
     camera.begin();
     
     // translate origin to center of screen
-    ofTranslate(ofGetWidth() / 2 - 350, ofGetHeight() / 2 - 180, 0);
+    ofTranslate(ofGetWidth() / 2 + xTranslation, ofGetHeight() / 2 + yTranslation, 0);
     
     // rotate the timeline in the z direction if it's not naturally right side up
     ofRotateZ(zRotation);
     
     // rotate the timeline so it opens up to the bottom left
-    ofRotateX(22.5);
-    ofRotateY(22.5);
+    ofRotateX(xRotation);
+    ofRotateY(yRotation);
     
     // move to the next person in the timeline (using the right or left key pressed)
     // xxx

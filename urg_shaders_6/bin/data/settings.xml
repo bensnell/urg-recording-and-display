@@ -1,24 +1,25 @@
 <group>
 	<General_Distance_Scaling>
-		<Min_Point_Dist>0</Min_Point_Dist>
-		<Max_Point_Dist>10000</Max_Point_Dist>
+		<Min_Point_Dist>1.53061</Min_Point_Dist>
+		<Max_Point_Dist>20000</Max_Point_Dist>
 	</General_Distance_Scaling>
 	<Point_Size_Scaling>
-		<Pt_Size_Mult>5</Pt_Size_Mult>
-		<Pt_Size_Power>1</Pt_Size_Power>
-		<Min_Point_Size>0</Min_Point_Size>
+		<Pt_Size_Mult>19.3878</Pt_Size_Mult>
+		<Pt_Size_Power>16.2245</Pt_Size_Power>
+		<Min_Point_Size>1.63265</Min_Point_Size>
 		<Max_Point_Size>100</Max_Point_Size>
 	</Point_Size_Scaling>
 	<Point_Opacity_Scaling>
-		<Pt_Op_Mult>1</Pt_Op_Mult>
-		<Pt_Op_Power>2</Pt_Op_Power>
-		<Min_Pt_Opacity>0</Min_Pt_Opacity>
+		<Pt_Op_Mult>0.454082</Pt_Op_Mult>
+		<Pt_Op_Power>2.70408</Pt_Op_Power>
+		<Min_Pt_Opacity>0.0270408</Min_Pt_Opacity>
 		<Max_Pt_Opacity>1</Max_Pt_Opacity>
 	</Point_Opacity_Scaling>
-	<Placement_&_Movement>
-		<X_Translation>512</X_Translation>
-		<Y_Translation>584</Y_Translation>
-		<Speed>0.1</Speed>
+	<Placement_and_Movement>
+		<X_Translation>673.469</X_Translation>
+		<Y_Translation>979.592</Y_Translation>
+		<Speed>0.0331633</Speed>
 		<Save_Image_Seq>0</Save_Image_Seq>
-	</Placement_&_Movement>
+	</Placement_and_Movement>
+<group/>
 </group>

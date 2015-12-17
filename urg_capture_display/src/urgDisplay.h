@@ -113,7 +113,7 @@ public:
     void drawPointMeshTWPRXY(float scale, float slide);
     
     // only uses meshes (vector) not mesh
-    void drawOrthoGhostedTimeline(float zRotation, float scale, float slide);
+    void drawOrthoGhostedTimeline(float xRotation, float yRotation, float zRotation,  float xTranslation, float yTranslation, float scale, float slide);
     
     void drawGhostedPointMeshes(float scale, float slide, float xRotation, float yRotation, float zRotation, bool bOrtho, bool bRotateControl, bool bSlideControl);
     float currentLocation = 0;

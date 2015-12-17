@@ -8,7 +8,7 @@ void ofApp::setup() {
     generalDistance.add(maxPointDist.set("Max Point Dist", 10000., 0., 20000.));
     
     pointSize.setName("Point Size Scaling");
-    pointSize.add(pointSizeMultiplier.set("Pt Size Mult", 5., 0., 50.));
+    pointSize.add(pointSizeMultiplier.set("Pt Size Mult", 5., 0., 100.));
     pointSize.add(pointSizePower.set("Pt Size Power", 1., 0., 20.));
     pointSize.add(minPointSize.set("Min Point Size", 0., 0., 10.));
     pointSize.add(maxPointSize.set("Max Point Size", 100., 1., 100.));
@@ -19,7 +19,7 @@ void ofApp::setup() {
     pointOpacity.add(minPointOpacity.set("Min Pt Opacity", 0., 0., .1));
     pointOpacity.add(maxPointOpacity.set("Max Pt Opacity", 1., 0., 1.));
     
-    placement.setName("Placement & Movement");
+    placement.setName("Placement and Movement");
     placement.add(xTrans.set("X Translation", ofGetWidth()/2., -2000., 2000.));
     placement.add(yTrans.set("Y Translation", ofGetHeight()/2 + 200, -2000., 2000.));
     placement.add(rotationalSpeed.set("Speed", 0.1, 0., 0.5));
@@ -118,8 +118,8 @@ void ofApp::draw() {
 	ofPushMatrix();
     
 	ofTranslate(xTrans, yTrans, zoom);
+    ofRotate(cameraRotation.y, 0, 1, 0);
 	ofRotate(cameraRotation.x, 1, 0, 0);
-	ofRotate(cameraRotation.y, 0, 1, 0);
 	ofRotate(cameraRotation.z, 0, 0, 1);
     ofScale(0.4, 0.4, 0.4);
 	

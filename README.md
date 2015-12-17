@@ -7,7 +7,8 @@ Apps:
 - urg_recording is used for static recordings (i.e. only recording lidar data). It can also render real-time recordings.
 - urg_recording_2 is used for dynamic recordings (i.e. recording lidar data in addition to orientation).
 - urg_capture_display is used to display these recordings, from various .csv data formats and in various drawing modes.
+- urg_shaders_6 is for rendering large point clouds with depth of field and perlin noise
 
-Examples of projects that can be made with these apps include those documented [here](https://github.com/golanlevin/ExperimentalCapture/blob/master/students/benjamin/Project%203/Project%203.md).
+Examples of projects that can be made with these apps include those documented [here](https://github.com/golanlevin/ExperimentalCapture/blob/master/students/benjamin/Project%203/Project%203.md) and [here](https://github.com/golanlevin/ExperimentalCapture/blob/master/students/benjamin/Final%20Project/Final%20Project.md).
 
 Developed in Golan Levin's class Experimental Capture, Carnegie Mellon University Fall 2015

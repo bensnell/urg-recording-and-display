@@ -24,6 +24,7 @@ void ofApp::setup(){
     recording.add(newRecording.set("New Recording", false));
     recording.add(endRecording.set("End Recording", false));
     recording.add(recordingState.set("Recording State", false));
+    recording.add(liveData.set("Live Data", false));
     panel.setup();
     panel.add(viewParams);
     panel.add(renderParams);
@@ -76,7 +77,7 @@ void ofApp::update(){
         ss <<  setw(2) << setfill('0') << ofGetMinutes() << "-";
         ss <<  setw(2) << setfill('0') << ofGetSeconds() << " ";
         string timestamp = ss.str();
-        string fileName = "zebra_cafe/" + timestamp + "recording" + ".csv";
+        string fileName = "carnegie_museum/" + timestamp + "recording" + ".csv";
         recFile.open(ofToDataPath(fileName), ofFile::WriteOnly);
         
         // set recordingState to true
@@ -134,6 +135,16 @@ void ofApp::update(){
                     if (recordingState) {
                         if (i != 0) recFile << ",";
                         recFile << ofToString(x) + "," + ofToString(y);
+                    }
+                    
+                    //debug
+                    if (i == 340) {
+                        if (r != last340) {
+                            liveData = true;
+                        } else {
+                            liveData = false;
+                        }
+                        last340 = r;
                     }
                     
                     mesh.addVertex(ofVec3f(x, y, 0.));

@@ -7,12 +7,13 @@ void ofApp::setup(){
     urg.setupPointMesh();
     
     // set the parameters of the scan
-    urg.setMeshParameters(300, 0, 682, 1000.);
+    urg.setMeshParameters(1, 0, 682, 1000.);
     
 //    urg.loadData("doherty", 0);
 //    urg.fillPointMeshTXY(0, 5000, false);
     
-    // try: 15 (/1) (creek), 6 (/8) hi res bamboo forest
+    // "spherical": 15 (/1) (creek), 6 (/8) hi res bamboo forest
+    // "spherical_2: 4 (/8) (bridge)
     urg.loadData("spherical_2", 4);
     urg.fillPointMeshTXYSpherical(225./64. / 8., 180., false, 0., 1., -3.8);
     
@@ -55,7 +56,9 @@ void ofApp::draw(){
     
 //    urg.drawGhostedPointMeshes(scale, slide, 0., 270., 90., false, false, true);
     
-//    urg.drawOrthoGhostedTimeline(270, 0.18, slide);
+//    urg.drawOrthoGhostedTimeline(22.5, 22.5, 270, -350, -180, 0.18, slide); // entrances / hallway
+    
+//    urg.drawOrthoGhostedTimeline(0, 0, 0, 0, -280, scale, slide); // doherty
     
 //    ofDrawBitmapStringHighlight(ofToString(ofGetFrameRate()), 10, 20);
 }
