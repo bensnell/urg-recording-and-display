@@ -16,10 +16,15 @@
 struct person {
     
 public:
-    int nDatums = 0; // number of points
-    float startScan; // beginning scan frame
-    float runningAvgY = 0; // to use to calculate if person has ended
-    Boolean updatedFlag = false;
+    int nDatums = 0;    // number of points
+    
+    long scanStart;      // beginning scan
+    long scanLength = 0; // length of capture in number of scans
+    
+    float startLocation;     // location in space relative to mesh
+    
+    float runningAvgHeight = 0; // to use to calculate if person has ended
+//    Boolean updatedFlag = false;
     
 };
 
@@ -48,7 +53,7 @@ public:
     
     void loadData(string folderName_, int fileNumber_);
     wng::ofxCsv csv;
-    int nScans;
+    long nScans; // should this be a long?
     
     string getFilePath(string folderName_, int fileNumber_);
     string fileName;
@@ -81,7 +86,7 @@ public:
     // fill point mesh with slightly transparent points outside of given bounds
     void fillPointMeshTXYGhosted(int xMin, int xMax, int yMin, int yMax, float transparency, Boolean timeDependent);
     // two meshes:
-    void fillPointMeshTXYGhostedDouble(int xMin, int xMax, int yMin, int yMax, float transparency, Boolean timeDependent);
+    void fillPointMeshTXYGhostedDouble(int startScan, int endScan, int xMin, int xMax, int yMin, int yMax, float transparency, bool timeDependent, bool bResample);
     ofMesh pointMeshOpaque;
     ofMesh pointMeshTransparent;
     
@@ -90,7 +95,7 @@ public:
     ofVec3f mirrorPoints[682] = {ofVec3f(0., 0., 0.)};
     
     // find people in a scene
-    void findPeople(int xMin, int xMax, int yMin, int yMax, int minPointCount, int maxDistContinuity);
+    void findPeople(int startScan, int endScan, int xMin, int xMax, int yMin, int yMax, int minPointCount, int maxDistContinuity, bool bYHeight);
     // min point count = number of points within bounds that can be considered part of a person
     // max distance of continuity = maximum distance that two average y values can be away from each other to be considered part of the same person
     // vector to hold people:
@@ -101,12 +106,22 @@ public:
     // the min and max periods are 0. and 1. for only showing the first pass at a capture
     void fillPointMeshTXYSpherical(float speed, float period, bool bClockwise, float startingPeriod, float numPeriods, float alignmentAngle);
     
+    // ---------------------------
+    // ---- SAVE & LOAD MESH -----
+    // ---------------------------
+    
+    // resample the capture to exclude large areas of nothing (focusing in on the people). Note: must call findPeople() before this
+    void resampleGhostedPointMeshes(int startScan, int endScan, int xMin, int xMax, int yMin, int yMax, float transparency, bool bResample, string exportName, int bufferSizeEnds, int bufferSizePeople);
+    
+    // load PLY files of each of the ghosted point meshes
+    void loadGhostedPointMeshes(string pointMeshOpaqueName, string pointMeshTransparentName);
+    
     
     // ---------------------------
     // ------ DISPLAY MESH -------
     // ---------------------------
 
-    void drawPointMeshLinear(float scale, float slide, float zRotation);
+    void drawPointMeshLinear(float scale, float slide, float zRotation, bool bMirror);
     
     void drawTriangleMeshXYZ(float scale, float slide);
     
@@ -115,12 +130,14 @@ public:
     // only uses meshes (vector) not mesh
     void drawOrthoGhostedTimeline(float xRotation, float yRotation, float zRotation,  float xTranslation, float yTranslation, float scale, float slide);
     
-    void drawGhostedPointMeshes(float scale, float slide, float xRotation, float yRotation, float zRotation, bool bOrtho, bool bRotateControl, bool bSlideControl);
+    void drawGhostedPointMeshes(float scale, float slide, float xRotation, float yRotation, float zRotation, bool bOrtho, bool bRotateControl, bool bSlideControl, bool bFlipX, bool bFlipY, float xTranslation, float yTranslation, bool bDrawPeopleLocations);
     float currentLocation = 0;
     float destination = 0;
     int pplCount = 0;
     
     void drawPointMeshSpherical(float scale, float slide);
+    
+//    void drawPeople();
     
     ofCamera camera;
     

@@ -340,6 +340,11 @@ void urgDisplay::fillPointMeshTXY(int startScan, int endScan, bool bTimeDependen
     // if startScan or endScan is -1, use the min or max value, respectively
     if (startScan == -1) startScan = 0;
     if (endScan == -1) endScan = nScans;
+    // check to make sure the endScan, if not -1, isn't greater than nScans
+    if (endScan > nScans) {
+        endScan = nScans;
+        cout << "endScan is too high. defaulting to total number of scans" << endl;
+    }
     
     float timeZero;
     
@@ -483,18 +488,26 @@ void urgDisplay::fillPointMeshTXYGhosted(int xMin, int xMax, int yMin, int yMax,
 
 // fill point mesh with slighly transparent points ouside of given bounds
 // USES TWO MESHES INSTEAD OF ONE
-void urgDisplay::fillPointMeshTXYGhostedDouble(int xMin, int xMax, int yMin, int yMax, float transparency, Boolean timeDependent) {
+void urgDisplay::fillPointMeshTXYGhostedDouble(int startScan, int endScan, int xMin, int xMax, int yMin, int yMax, float transparency, bool timeDependent, bool bResample) {
     
     // clear the previous mesh, if one exists
     pointMeshOpaque.clear();
     pointMeshTransparent.clear();
     
+    // if startScan or endScan is -1, use the min or max value, respectively
+    if (startScan == -1) startScan = 0;
+    if (endScan == -1) endScan = nScans;
+    // check to make sure the endScan, if not -1, isn't greater than nScans
+    if (endScan > nScans) {
+        endScan = nScans;
+        cout << "endScan is too high. defaulting to total number of scans" << endl;
+    }
+    
     // stores starting time
     float timeZero;
     
-    
     // for every scan, add it to the mesh
-    for (int i = 0; i < nScans; i++) {
+    for (int i = startScan; i < endScan; i++) {
         
         float timeNow;
         if (timeDependent) {
@@ -519,10 +532,11 @@ void urgDisplay::fillPointMeshTXYGhostedDouble(int xMin, int xMax, int yMin, int
             float py = csv.getFloat(i, 2 * j + 1);
             
             // cull out "free radials" (extra readings along horizon)
-            if (px < 5 && px > -5 && py < yMax) continue;
+            if (px < 7 && px > -7 && py < (yMax + 100)) continue;
+            if (px < 7 && px > -7 && py > (yMax + 140)) continue;
             
             // if the reading has a y around or less than 0, cut it out
-            if (py < 10) continue;
+            if (py < 10) continue; // optional
             
             // remove points within a certain distance of the scan if the reference distance isn't zero
             if (minSqDist2Cam != 0.) {
@@ -544,12 +558,14 @@ void urgDisplay::fillPointMeshTXYGhostedDouble(int xMin, int xMax, int yMin, int
                 
                 // OPTIONAL RESAMPLE
                 // cull out points that are too close to each other (only do this to the outer ghosted points)
-                int minProximity = 2;
-                if (abs(prevx - px) < minProximity || abs(prevy - py) < minProximity) {
-                    continue; // cull it
-                } else {
-                    prevx = px;
-                    prevy = py;
+                if (bResample) {
+                    int minProximity = 2;
+                    if (abs(prevx - px) < minProximity || abs(prevy - py) < minProximity) {
+                        continue; // cull it
+                    } else {
+                        prevx = px;
+                        prevy = py;
+                    }
                 }
                 
                 // make transparent (shades of white)
@@ -565,16 +581,23 @@ void urgDisplay::fillPointMeshTXYGhostedDouble(int xMin, int xMax, int yMin, int
                 pointMeshOpaque.addColor(thisColor);
             }
             
-            // OPTIONAL MIRRORING -- only for transparent mesh
+            // OP MIRRORING (for carnegie museum)
+//            if (px < xMin) {
+//                mirrorPoints[j] = ofVec3f(px, yMax / 2 + yMax / 2 - py, pz);
+//            }
+            
+            // OPTIONAL MIRRORING -- only for transparent mesh (for wean hallway)
             // mirror opposite side and keep running tally of the best points to mirror
-            if (py > yMax && py < (yMax + 500)) {
-                mirrorPoints[j] = ofVec3f(px, yMin - (py - yMax), pz); // new point
-            }
+//            if (py > yMax && py < (yMax + 500)) {
+//                mirrorPoints[j] = ofVec3f(px, yMin - (py - yMax), pz); // new point
+//            }
             // if a point exists at j in array, add it to the mesh with a little randomness
-            if ((mirrorPoints[j].x + mirrorPoints[j].y + mirrorPoints[j].z) != 0.) {
-                pointMeshTransparent.addVertex(ofVec3f(mirrorPoints[j].x - 50 + ofRandom(-5., 5.), mirrorPoints[j].y + ofRandom(-5., 5.), pz));
-                pointMeshTransparent.addColor(ofFloatColor(1., transparency));
-            }
+//            if ((mirrorPoints[j].x + mirrorPoints[j].y + mirrorPoints[j].z) != 0.) {
+//                pointMeshTransparent.addVertex(ofVec3f(mirrorPoints[j].x - 50 + ofRandom(-5., 5.), mirrorPoints[j].y + ofRandom(-5., 5.), pz));
+//                pointMeshTransparent.addColor(ofFloatColor(1., transparency));
+//            }
+            
+            
             
         }
     }
@@ -582,8 +605,126 @@ void urgDisplay::fillPointMeshTXYGhostedDouble(int xMin, int xMax, int yMin, int
 
 // ---------------------------------------------------------------------
 
+// buffer size is the max number of scans without people in them at the ends of the capture or on either side of each person
+void urgDisplay::resampleGhostedPointMeshes(int startScan, int endScan, int xMin, int xMax, int yMin, int yMax, float transparency, bool bResample, string exportName, int bufferSizeEnds, int bufferSizePeople) {
+    
+    // clear the previous mesh, if one exists
+    pointMeshOpaque.clear();
+    pointMeshTransparent.clear();
+    
+    // if startScan or endScan is -1, use the min or max value, respectively
+    if (startScan == -1) startScan = 0;
+    if (endScan == -1) endScan = nScans;
+    // check to make sure the endScan, if not -1, isn't greater than nScans
+    if (endScan > nScans) {
+        endScan = nScans;
+        cout << "endScan is too high. defaulting to total number of scans" << endl;
+    }
+    
+    // keeps count of scans added to meshes (use to set z value)
+    unsigned long counter = 0;
+    
+//    cout << "there are this many people: " << people.size() << " and this many scans: " << nScans << endl;
+    
+    // For every person
+    for (long i = 0; i < people.size(); i++) {
+        
+//        cout << "now person " << i << " with start " << people[i].scanStart << " and length " << people[i].scanLength << endl;
+        
+        long thisStart = MAX(0, people[i].scanStart - bufferSizePeople);
+        if (i == 0) thisStart = MAX(0, thisStart - bufferSizeEnds);
+        
+        long thisEnd = MIN(nScans, people[i].scanStart + people[i].scanLength + bufferSizePeople);
+        if (i == people.size() - 1) thisEnd = MIN(nScans, thisEnd + bufferSizeEnds);
+        
+//        cout << "plan to use scans " << thisStart << " to " << thisEnd << endl;
+        
+        // For every scan in that person
+        for (long j = thisStart; j < thisEnd; j++) { // change to long
+            
+            // skip the rest of a person's scans if at any point they overlap with the next person's scans
+            if (i != people.size() - 1) {
+                if (j >= MAX(0, people[i + 1].scanStart - bufferSizePeople)) {
+                    cout << "stop at " << j << " for person # " << (i) << endl;
+                    break;
+                }
+            }
+            
+            // ------------------------
+            // --- NOW ADD THE SCAN ---
+            // ------------------------
+            
+            // for culling data points that are too close outside of bounds
+            float prevx = 0.;
+            float prevy = 0.;
+            
+            // for every point in the scan, add it to the mesh
+            for (int k = minIndex + 1; k < maxIndex + 1; k++) {
+                
+                // get the x and y location of the point from the csv
+                float px = csv.getFloat(j, 2 * k); // CSV ONLY ACCEPTS INTS HERE!
+                float py = csv.getFloat(j, 2 * k + 1);
+                
+                // cull out "free radials" (extra readings along horizon)
+                if (px < 5 && px > -5 && py < (yMax + 105)) continue;
+                if (px < 5 && px > -5 && py > (yMax + 135)) continue;
+                
+                // if the reading has a y around or less than 0, cut it out
+                if (py < 10) continue; // optional
+                
+                // remove points within a certain distance of the scan if the reference distance isn't zero
+                if (minSqDist2Cam != 0.) {
+                    double sqDist = ofVec3f(px, py, 0.).distanceSquared(ofVec3f(0.,0.,0.));
+                    if (sqDist < minSqDist2Cam) continue;
+                }
+                
+                // find the current z value based on the number of scans added to the meshes
+                float pz = counter * 0.1 * zScale;
+                
+                // find the color for this point, depending on the boundaries passed in (this will make it ghosted)
+                ofFloatColor thisColor;
+                if (px < xMin || px > xMax || py < yMin || py > yMax) {
+                    
+                    // OPTIONAL RESAMPLE
+                    // cull out points that are too close to each other (only do this to the outer ghosted points)
+                    if (bResample) {
+                        int minProximity = 5;
+                        if (abs(prevx - px) < minProximity || abs(prevy - py) < minProximity) {
+                            continue; // cull it
+                        } else {
+                            prevx = px;
+                            prevy = py;
+                        }
+                    }
+                    
+                    // make transparent (shades of white)
+                    thisColor.set(1., transparency);
+                    
+                    pointMeshTransparent.addVertex(ofVec3f(px, py, pz));
+                    pointMeshTransparent.addColor(thisColor);
+                    
+                } else {
+                    // make opaque (white)
+                    thisColor.set(1.);
+                    pointMeshOpaque.addVertex(ofVec3f(px, py, pz));
+                    pointMeshOpaque.addColor(thisColor);
+                }
+            }
+            
+            counter++;
+        }
+    }
+    
+    // save the meshes to file
+        pointMeshOpaque.save(exportName + "_opaque.ply");
+        pointMeshTransparent.save(exportName + "_transparent.ply");
+}
+
+// ---------------------------------------------------------------------
+
 // works for XYZ and TXY
-void urgDisplay::drawPointMeshLinear(float scale, float slide, float zRotation) {
+// when mirror is true, mirrors across x
+void urgDisplay::drawPointMeshLinear(float scale, float slide, float zRotation, bool bMirror) {
     
     int mouseX = ofGetAppPtr()->mouseX;
     int mouseY = ofGetAppPtr()->mouseY;
@@ -592,6 +733,7 @@ void urgDisplay::drawPointMeshLinear(float scale, float slide, float zRotation) 
     ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2, 0);
     ofRotateY(ofMap(mouseX, 0, ofGetWidth(), -90, 90));
     ofRotateX(ofMap(mouseY, 0, ofGetHeight(), -90, 90));
+    if (bMirror) ofScale(-1, 1, 1);
     ofRotateZ(zRotation);
     ofTranslate(0., 0., slide * scale);
     ofScale(scale, scale, scale);
@@ -689,7 +831,7 @@ void urgDisplay::drawOrthoGhostedTimeline(float xRotation, float yRotation, floa
 // ---------------------------------------------------------------------
 
 // draw pair of transparent and opaque meshes
-void urgDisplay::drawGhostedPointMeshes(float scale, float slide, float xRotation, float yRotation, float zRotation, bool bOrtho, bool bRotateControl, bool bSlideControl) {
+void urgDisplay::drawGhostedPointMeshes(float scale, float slide, float xRotation, float yRotation, float zRotation, bool bOrtho, bool bRotateControl, bool bSlideControl, bool bFlipX, bool bFlipY, float xTranslation, float yTranslation, bool bDrawPeopleLocations) {
     
     if (bOrtho) {
         camera.setFarClip(500);
@@ -704,15 +846,13 @@ void urgDisplay::drawGhostedPointMeshes(float scale, float slide, float xRotatio
     
     ofPushMatrix();
     
-    ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2, 0.);
+    ofTranslate(ofGetWidth() / 2 + xTranslation, ofGetHeight() / 2 + yTranslation, 0.);
     
-    if (bRotateControl) {
-        ofRotateY(ofMap(mouseX, 0, ofGetWidth(), -xRotation, xRotation));
-        ofRotateX(ofMap(mouseY, 0, ofGetHeight(), -yRotation, yRotation));
-    } else {
-        ofRotateX(xRotation);
-        ofRotateY(yRotation);
-    }
+    ofRotateX(xRotation);
+    if (bRotateControl) ofRotateX(ofMap(mouseY, 0, ofGetHeight(), -90, 90));
+    ofRotateY(yRotation);
+    if (bRotateControl) ofRotateY(ofMap(mouseX, 0, ofGetWidth(), -90, 90));
+    
     ofRotateZ(zRotation);
     
 //    if (getKeyPressed() == 32) {
@@ -758,22 +898,40 @@ void urgDisplay::drawGhostedPointMeshes(float scale, float slide, float xRotatio
         ofTranslate(0., 0., -currentLocation * .2);
     }
     
+    ofScale(1 - 2 * bFlipX, 1 - 2 * bFlipY); // flip in true directions
     ofScale(scale, scale, scale);
     
     pointMeshOpaque.drawVertices();
     pointMeshTransparent.drawVertices();
     
     // draw locations of people
-//    for (int i = 0; i < people.size(); i++) {
-//        ofSetColor(255);
-//        
-//        ofCircle(ofVec3f(0., 0., people[i].startScan), 50);
-//    }
+    if (bDrawPeopleLocations) {
+        for (int i = 0; i < people.size(); i++) {
+            ofSetColor(255);
+            
+            ofCircle(ofVec3f(0., 0., people[i].startLocation), 50);
+        }
+    }
     
     ofPopMatrix();
     
     if (bOrtho) camera.end();
 }
+
+// ---------------------------------------------------------------------
+
+//void urgDisplay::drawPeople() {
+//    
+//    // draw locations of people
+//        for (int i = 0; i < people.size(); i++) {
+//            ofSetColor(255);
+//    
+//            ofCircle(ofVec3f(0., 0., people[i].startScan), 50);
+//        }
+//}
+
+
+
 
 /*
 
@@ -817,21 +975,33 @@ ofPopMatrix();
 // ---------------------------------------------------------------------
 
 // not time dependent
-void urgDisplay::findPeople(int xMin, int xMax, int yMin, int yMax, int minPointCount, int maxDistContinuity) {
+void urgDisplay::findPeople(int startScan, int endScan, int xMin, int xMax, int yMin, int yMax, int minPointCount, int maxDistContinuity, bool bYHeight) {
     
     people.clear();
     
-    // vector to hold temporary people as we search
-    vector<person> tempPeople;
+    // if startScan or endScan is -1, use the min or max value, respectively
+    if (startScan == -1) startScan = 0;
+    if (endScan == -1) endScan = nScans;
+    // check to make sure the endScan, if not -1, isn't greater than nScans
+    if (endScan > nScans) {
+        endScan = nScans;
+        cout << "endScan is too high. defaulting to total number of scans" << endl;
+    }
     
-    // look at every scan
-    for (int i = 0; i < nScans; i++) {
+    person runningPerson;   // last person captured, if still in the scan
+    
+    float avgWeight = 0.5;  // weight of running average
+    
+    // For each scan...
+    for (int i = startScan; i < endScan; i++) {
         
-        // create variable to store sum of y coordinates in a scan
-        float sumY = 0;
-        int nPts = 0;
+        // -------------------------
+        // ------ SAMPLE SCAN ------
+        // -------------------------
         
-        // look at points in a scan
+        // Find the count and sum of y values for every point within the specified bounds of a scan
+        float sumHeights = 0;     // sum of y values of points within bounds
+        int nPts = 0;       // number of points within bounds
         for (int j = minIndex + 1; j < maxIndex + 1; j++) {
             
             // get x and y
@@ -842,122 +1012,204 @@ void urgDisplay::findPeople(int xMin, int xMax, int yMin, int yMax, int minPoint
             if (px > xMin && px < xMax && py > yMin && py < yMax) {
                 
                 // ...add it to the sum and increment nPts
-                sumY += py;
+                if (bYHeight) {
+                    sumHeights += py;
+                } else {
+                    sumHeights += px;
+                }
                 nPts++;
             }
-            
         }
         
-        // if the number of points in bounds is greater than the minPointCount, there is a person here
+        // -------------------------
+        // ----- UPDATE PEOPLE -----
+        // -------------------------
+        
+        // If the number of points is greater than the minPointCount, there is a person here
         if (nPts > minPointCount) {
             
-            // weight of running average (1 means there is not average of previous values)
-            float avgWeight = 0.5;
+            // calculate average height
+            float avgHeight = sumHeights / (float)nPts;
             
-            // calculate the average y
-            float avgY = sumY / (float)nPts;
-            
-//            cout << " index: " << i << "    avg: " << avgY << endl;
-            
-            // if the vector of temp people is empty, create a new person
-            if (tempPeople.empty()) {
+            // if lastPerson is empty, create a new person (lastPerson)
+            if (runningPerson.nDatums == 0) {
                 
-//                cout << "tempPeople empty.    now, it's: ";
-                
-                person tempPerson;
-                tempPerson.nDatums += nPts;
-                tempPerson.startScan = i * 0.1 * zScale; // scan index location
-                tempPerson.runningAvgY = avgWeight * avgY + (1. - avgWeight) * tempPerson.runningAvgY;
-                
-                // add to tempPeople vector from the beginning
-                tempPeople.insert(tempPeople.begin(), tempPerson);
-                
-//                cout << tempPeople.size() << endl;
-                
-                // note: could find actual average using nDatums
+                // update running person
+                runningPerson.nDatums += nPts;
+                runningPerson.scanStart = i;
+                runningPerson.scanLength++;
+                runningPerson.startLocation = i * 0.1 * zScale; // scan index location
+                runningPerson.runningAvgHeight = avgHeight;
             }
-            // otherwise, check the tempPeople to see if this is a continuation of a person
+            
+            // otherwise, if this person is close enough to the runningPerson, update runningPerson
+            else if (abs(avgHeight - runningPerson.runningAvgHeight) < maxDistContinuity) {
+                
+                // update running person
+                runningPerson.nDatums += nPts;
+                runningPerson.scanLength++;
+                runningPerson.runningAvgHeight = avgWeight * avgHeight + (1. - avgWeight) * runningPerson.runningAvgHeight;
+            }
+            
+            // otherwise, this is a new person, so end the last person and create a new person
             else {
                 
-//                cout << "TP not empty. It has size: " << tempPeople.size() << endl;
+                // add running person to people vector
+                people.push_back(runningPerson);
                 
-                for (int k = 0; k < tempPeople.size(); k++) {
-                    
-                    // find the avgY to compare to
-                    float referenceAvgY = tempPeople[k].runningAvgY;
-                    
-                    // if the avg y's are within the maxDistContinuity, it's the same person, so update this person's info
-                    if (abs(referenceAvgY - avgY) < maxDistContinuity) {
-                        
-//                        cout << "close enough to consider the same person" << endl;
-                        
-                        tempPeople[k].nDatums += nPts;
-                        tempPeople[k].runningAvgY = avgWeight * avgY + (1. - avgWeight) * tempPeople[k].runningAvgY;
-                        
-                        // the avgY can't be for two people, so flag that this person has been updated so we can finish off the non-updated people
-                        tempPeople[k].updatedFlag = true;
-                        
-//                        cout << "make flag of " << k << " true" << endl;
-                        
-                        // exit from the loop so we don't update any other people
-                        break;
-                    }
-                }
-                
-//                cout << "here" << endl;
-                
-                // go through the updatedFlags of all tempPeople to either keep them or finish them, THEN and only then can you create a new person if the avgY's weren't close enough (foundMatch flag)
-                Boolean foundMatch = false;
-                for (int k = tempPeople.size() - 1; k >= 0; k--) { // iterate backwards to prevent deleting the same elements in vector
-                    
-//                    cout << k << endl;
-                    
-                    // if person was udpated keep it
-                    if (tempPeople[k].updatedFlag) {
-                        tempPeople[k].updatedFlag = false; // give them another chance
-                        // mark that the avgY was matched with a person
-                        foundMatch = true;
-                        
-//                        cout << "found a match. keep em" << endl;
-                        
-                    }
-                    // otherwise, finish them and add them to the people array
-                    else {
-                        people.push_back(tempPeople[k]);
-                        
-//                        cout << "erase person " << k;
-                        
-                        // delete from temp people array
-                        tempPeople.erase(tempPeople.begin() + k);
-                        
-//                        cout << ".   now TP is this long: " << tempPeople.size() << endl;
-                        
-                        
-                    }
-                }
-                
-//                cout << "done checking the other temp people. TP is now this long: " << tempPeople.size() << endl;
-                
-                // if foundMatch is false, create a new person (in what is now an empty array)
-                if (!foundMatch) {
-                    
-//                    cout << "didn't find a match in TP, so let's create a new person. now TP.size() = ";
-                    
-                    person tempPerson;
-                    tempPerson.nDatums += nPts;
-                    tempPerson.startScan = i * 0.1 * zScale; // scan index location
-                    tempPerson.runningAvgY = avgWeight * avgY + (1. - avgWeight) * tempPerson.runningAvgY;
-                    
-                    // add to tempPeople vector from the beginning
-                    // note: could push back here since the vector is empty
-                    tempPeople.insert(tempPeople.begin(), tempPerson);
-                    
-//                    cout << tempPeople.size() << endl;
-                }
+                // start a new running person
+                runningPerson.nDatums = nPts;
+                runningPerson.scanStart = i;
+                runningPerson.scanLength = 1;
+                runningPerson.startLocation = i * 0.1 * zScale;
+                runningPerson.runningAvgHeight = avgHeight;
             }
         }
+        
+        // If the number of points in bounds is less than the minPointCount, there is no person here
+        else {
+            
+            // if there's a running person, finish them
+            if (runningPerson.nDatums > 0) {
+                
+                // add running person to people vector
+                people.push_back(runningPerson);
+                
+                // clear running person
+                runningPerson.nDatums = 0;
+                runningPerson.scanStart = 0;
+                runningPerson.scanLength = 0;
+                runningPerson.startLocation = 0;
+                runningPerson.runningAvgHeight = 0;
+            }
+            
+            // otherwise, don't do anything
+        }
+        
     }
+    
+    // if running person is still in the last frame, finish them
+    if (runningPerson.nDatums > 0) {
+        
+        people.push_back(runningPerson);
+    }
+    
+    
+    
+    
+    
+//            // if the vector of temp people is empty, create a new person
+//            if (tempPeople.empty()) {
+//                
+////                cout << "tempPeople empty.    now, it's: ";
+//                
+//                person tempPerson;
+//                tempPerson.nDatums += nPts;
+//                tempPerson.startScan = i * 0.1 * zScale; // scan index location
+//                tempPerson.runningAvgY = avgWeight * avgY + (1. - avgWeight) * tempPerson.runningAvgY;
+//                
+//                // add to tempPeople vector from the beginning
+//                tempPeople.insert(tempPeople.begin(), tempPerson);
+//                
+////                cout << tempPeople.size() << endl;
+//                
+//                // note: could find actual average using nDatums
+//            }
+//            // otherwise, check the tempPeople to see if this is a continuation of a person
+//            else {
+//                
+////                cout << "TP not empty. It has size: " << tempPeople.size() << endl;
+//                
+//                for (int k = 0; k < tempPeople.size(); k++) {
+//                    
+//                    // find the avgY to compare to
+//                    float referenceAvgY = tempPeople[k].runningAvgY;
+//                    
+//                    // if the avg y's are within the maxDistContinuity, it's the same person, so update this person's info
+//                    if (abs(referenceAvgY - avgY) < maxDistContinuity) {
+//                        
+////                        cout << "close enough to consider the same person" << endl;
+//                        
+//                        tempPeople[k].nDatums += nPts;
+//                        tempPeople[k].runningAvgY = avgWeight * avgY + (1. - avgWeight) * tempPeople[k].runningAvgY;
+//                        
+//                        // the avgY can't be for two people, so flag that this person has been updated so we can finish off the non-updated people
+//                        tempPeople[k].updatedFlag = true;
+//                        
+////                        cout << "make flag of " << k << " true" << endl;
+//                        
+//                        // exit from the loop so we don't update any other people
+//                        break;
+//                    }
+//                }
+//                
+////                cout << "here" << endl;
+//                
+//                // go through the updatedFlags of all tempPeople to either keep them or finish them, THEN and only then can you create a new person if the avgY's weren't close enough (foundMatch flag)
+//                Boolean foundMatch = false;
+//                for (int k = tempPeople.size() - 1; k >= 0; k--) { // iterate backwards to prevent deleting the same elements in vector
+//                    
+////                    cout << k << endl;
+//                    
+//                    // if person was udpated keep it
+//                    if (tempPeople[k].updatedFlag) {
+//                        tempPeople[k].updatedFlag = false; // give them another chance
+//                        // mark that the avgY was matched with a person
+//                        foundMatch = true;
+//                        
+////                        cout << "found a match. keep em" << endl;
+//                        
+//                    }
+//                    // otherwise, finish them and add them to the people array
+//                    else {
+//                        people.push_back(tempPeople[k]);
+//                        
+////                        cout << "erase person " << k;
+//                        
+//                        // delete from temp people array
+//                        tempPeople.erase(tempPeople.begin() + k);
+//                        
+////                        cout << ".   now TP is this long: " << tempPeople.size() << endl;
+//                        
+//                        
+//                    }
+//                }
+//                
+////                cout << "done checking the other temp people. TP is now this long: " << tempPeople.size() << endl;
+//                
+//                // if foundMatch is false, create a new person (in what is now an empty array)
+//                if (!foundMatch) {
+//                    
+////                    cout << "didn't find a match in TP, so let's create a new person. now TP.size() = ";
+//                    
+//                    person tempPerson;
+//                    tempPerson.nDatums += nPts;
+//                    tempPerson.startScan = i * 0.1 * zScale; // scan index location
+//                    tempPerson.runningAvgY = avgWeight * avgY + (1. - avgWeight) * tempPerson.runningAvgY;
+//                    
+//                    // add to tempPeople vector from the beginning
+//                    // note: could push back here since the vector is empty
+//                    tempPeople.insert(tempPeople.begin(), tempPerson);
+//                    
+////                    cout << tempPeople.size() << endl;
+//                }
+//            }
+//        }
+        
 }
+
+// ---------------------------------------------------------------------
+
+void urgDisplay::loadGhostedPointMeshes(string pointMeshOpaqueName, string pointMeshTransparentName) {
+
+    pointMeshOpaque.clear();
+    pointMeshOpaque.load(pointMeshOpaqueName);
+    
+    pointMeshTransparent.clear();
+    pointMeshTransparent.load(pointMeshTransparentName);
+    
+}
+
 
 // ---------------------------------------------------------------------
 
@@ -1106,7 +1358,5 @@ void urgDisplay::drawPointMeshSpherical(float scale, float slide) {
     easyCam.end();
     
 }
-
-
 
 

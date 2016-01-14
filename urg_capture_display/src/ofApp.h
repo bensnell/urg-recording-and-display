@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "ofxCsv.h"
 #include "urgDisplay.h"
+#include "ofxGui.h"
 
 class ofApp : public ofBaseApp{
 
@@ -31,6 +32,13 @@ class ofApp : public ofBaseApp{
     int autoSlideStep = 12;
     
     Boolean cursorShowing = true;
+    
+    bool bDrawPanel;
+    
+    ofParameter<float> xTranslation;
+    ofParameter<float> yTranslation;
+    ofParameterGroup controls;
+    ofxPanel panel;
     
 };
 

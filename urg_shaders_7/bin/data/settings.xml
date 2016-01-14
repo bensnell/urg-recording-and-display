@@ -1,0 +1,31 @@
+<group>
+	<General_Distance_Scaling>
+		<Min_Point_Dist>7.14286</Min_Point_Dist>
+		<Max_Point_Dist>15612.2</Max_Point_Dist>
+	</General_Distance_Scaling>
+	<Point_Size_Scaling>
+		<Pt_Size_Mult>17.8571</Pt_Size_Mult>
+		<Pt_Size_Power>6.83673</Pt_Size_Power>
+		<Min_Point_Size>0.510204</Min_Point_Size>
+		<Max_Point_Size>68.6837</Max_Point_Size>
+	</Point_Size_Scaling>
+	<Point_Opacity_Scaling>
+		<Pt_Op_Mult>0.867347</Pt_Op_Mult>
+		<Pt_Op_Power>3.18878</Pt_Op_Power>
+		<Min_Pt_Opacity>0</Min_Pt_Opacity>
+		<Max_Pt_Opacity>1</Max_Pt_Opacity>
+	</Point_Opacity_Scaling>
+	<Placement_and_Movement>
+		<X_Translation>1115.1</X_Translation>
+		<Y_Translation>1408.16</Y_Translation>
+		<Speed>0.0331633</Speed>
+		<Save_Image_Seq>0</Save_Image_Seq>
+	<Rot_Speed>0.183673</Rot_Speed>
+		<Trans_Speed>-2.44898</Trans_Speed>
+	<Zoom_Speed>-13.2653</Zoom_Speed>
+	<Mirror_X>0</Mirror_X>
+		<Mirror_Y>1</Mirror_Y>
+	<Perlin_Noise>1</Perlin_Noise>
+	</Placement_and_Movement>
+<group/>
+</group>
