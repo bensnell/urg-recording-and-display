@@ -1,6 +1,8 @@
 # urg-recording-and-display
 For easily recording and displaying lidar scans from the Hokuyo URG-04lX-UG01
 
+[UPDATE APP FOR OF 9.3 WITH EXAMPLES INCLUDED HERE](https://github.com/bensnell/urg_recording_and_display_2)
+
 Used in conjunction with [Dan Moore's ofxURG library](https://github.com/danthemellowman/ofxUrg) (sender app).
 
 Apps:
